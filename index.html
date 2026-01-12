@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Cosmic Cleaner</title>
+    
+    <!-- PWA мета-теги -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cosmic Cleaner">
+    <meta name="theme-color" content="#0a0a2a">
+    <meta name="msapplication-TileColor" content="#0a0a2a">
+    
+    <!-- Иконки -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%2300ccff%22>🚀</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%2300ccff%22>🚀</text></svg>">
+    
+    <!-- Стили и шрифты -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Manifest для PWA -->
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Загрузочный экран -->
+        <div id="loadingScreen" class="screen">
+            <div class="loading-content">
+                <div class="loader">
+                    <div class="spaceship">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="loading-bar">
+                        <div class="loading-progress"></div>
+                    </div>
+                </div>
+                <h1 class="game-title">COSMIC CLEANER</h1>
+                <p class="loading-text">Загрузка игры...</p>
+            </div>
+        </div>
+        
+        <!-- Главное меню -->
+        <div id="mainMenu" class="screen hidden">
+            <div class="mobile-menu">
+                <div class="menu-header">
+                    <h1 class="game-title">
+                        <i class="fas fa-satellite"></i><br>
+                        COSMIC<br>CLEANER
+                    </h1>
+                    <p class="game-subtitle">Спаси космос от мусора!</p>
+                </div>
+                
+                <div class="menu-buttons">
+                    <button id="startGame" class="mobile-btn primary">
+                        <i class="fas fa-play"></i> Играть
+                    </button>
+                    <button id="continueGame" class="mobile-btn secondary" style="display: none;">
+                        <i class="fas fa-redo"></i> Продолжить
+                    </button>
+                    <button id="howToPlay" class="mobile-btn secondary">
+                        <i class="fas fa-question-circle"></i> Обучение
+                    </button>
+                    <button id="highScoresBtn" class="mobile-btn secondary">
+                        <i class="fas fa-trophy"></i> Рекорды
+                    </button>
+                    <button id="toggleSound" class="mobile-btn secondary">
+                        <i class="fas fa-volume-up"></i> Звук
+                    </button>
+                </div>
+                
+                <div class="menu-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-crown"></i>
+                        <div>
+                            <span class="stat-label">Лучший</span>
+                            <span id="bestScoreDisplay" class="stat-value">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-trash"></i>
+                        <div>
+                            <span class="stat-label">Всего убрано</span>
+                            <span id="totalCleanedDisplay" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="game-tip">
+                    <p><i class="fas fa-mobile-alt"></i> Используй сенсорное управление</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Игровой экран -->
+        <div id="gameScreen" class="screen hidden">
+            <div class="game-header">
+                <div class="stats-bar">
+                    <div class="stat-circle">
+                        <div class="stat-icon">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Мусор</span>
+                            <span id="score" class="stat-value">0/100</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-circle">
+                        <div class="stat-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Здоровье</span>
+                            <span id="health" class="stat-value">100%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-circle">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Время</span>
+                            <span id="time" class="stat-value">60с</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="power-bar">
+                    <div class="power-label">
+                        <i class="fas fa-bolt"></i>
+                        <span>Энергия</span>
+                    </div>
+                    <div class="power-container">
+                        <div id="powerFill" class="power-fill"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="game-area">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+            
+            <!-- Мобильное управление -->
+            <div class="mobile-controls">
+                <!-- Виртуальный джойстик -->
+                <div class="joystick-container">
+                    <div id="joystickBase" class="joystick-base">
+                        <div id="joystick" class="joystick">
+                            <i class="fas fa-arrows-alt"></i>
+                        </div>
+                    </div>
+                    <div class="joystick-label">ДВИЖЕНИЕ</div>
+                </div>
+                
+                <!-- Кнопки действий -->
+                <div class="action-buttons">
+                    <div class="action-column">
+                        <button id="boostBtn" class="action-btn boost">
+                            <i class="fas fa-rocket"></i>
+                            <span>УСКОРЕНИЕ</span>
+                        </button>
+                        
+                        <button id="pauseBtn" class="action-btn pause">
+                            <i class="fas fa-pause"></i>
+                            <span>ПАУЗА</span>
+                        </button>
+                    </div>
+                    
+                    <div class="action-column">
+                        <button id="magnetBtn" class="action-btn magnet">
+                            <i class="fas fa-magnet"></i>
+                            <span>МАГНИТ</span>
+                        </button>
+                        
+                        <button id="shieldBtn" class="action-btn shield">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>ЩИТ</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Экран паузы -->
+        <div id="pauseScreen" class="screen hidden">
+            <div class="popup-menu">
+                <div class="popup-header">
+                    <i class="fas fa-pause-circle"></i>
+                    <h2>ПАУЗА</h2>
+                </div>
+                
+                <div class="popup-buttons">
+                    <button id="resumeGame" class="popup-btn primary">
+                        <i class="fas fa-play"></i> Продолжить
+                    </button>
+                    <button id="restartGame" class="popup-btn secondary">
+                        <i class="fas fa-redo"></i> Начать заново
+                    </button>
+                    <button id="quitToMenu" class="popup-btn secondary">
+                        <i class="fas fa-home"></i> В меню
+                    </button>
+                </div>
+                
+                <div class="current-stats">
+                    <div class="current-stat">
+                        <i class="fas fa-trash"></i>
+                        <span>Собрано: <strong id="pauseScore">0</strong></span>
+                    </div>
+                    <div class="current-stat">
+                        <i class="fas fa-heart"></i>
+                        <span>Здоровье: <strong id="pauseHealth">100%</strong></span>
+                    </div>
+                    <div class="current-stat">
+                        <i class="fas fa-clock"></i>
+                        <span>Время: <strong id="pauseTime">60с</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Экран Game Over -->
+        <div id="gameOverScreen" class="screen hidden">
+            <div class="popup-menu">
+                <div class="popup-header game-over">
+                    <i class="fas fa-skull-crossbones"></i>
+                    <h2>МИССИЯ ПРОВАЛЕНА</h2>
+                </div>
+                
+                <div class="result-stats">
+                    <div class="result-stat">
+                        <div class="result-icon">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                        <div class="result-info">
+                            <span class="result-label">Собрано мусора</span>
+                            <span id="finalScore" class="result-value">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="result-stat">
+                        <div class="result-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="result-info">
+                            <span class="result-label">Лучший результат</span>
+                            <span id="finalBestScore" class="result-value">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="result-stat">
+                        <div class="result-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="result-info">
+                            <span class="result-label">Всего убрано</span>
+                            <span id="finalTotalCleaned" class="result-value">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="popup-buttons">
+                    <button id="restartAfterGameOver" class="popup-btn primary">
+                        <i class="fas fa-redo"></i> Ещё раз
+                    </button>
+                    <button id="menuAfterGameOver" class="popup-btn secondary">
+                        <i class="fas fa-home"></i> В меню
+                    </button>
+                </div>
+                
+                <div class="share-prompt">
+                    <p>Поделись результатом с друзьями!</p>
+                    <button id="shareResult" class="share-btn">
+                        <i class="fas fa-share-alt"></i> Поделиться
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Экран победы -->
+        <div id="victoryScreen" class="screen hidden">
+            <div class="popup-menu victory">
+                <div class="popup-header victory">
+                    <i class="fas fa-trophy"></i>
+                    <h2>ПОБЕДА!</h2>
+                </div>
+                
+                <div class="victory-stats">
+                    <div class="victory-stat">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Миссия выполнена!</span>
+                    </div>
+                    
+                    <div class="victory-details">
+                        <div class="victory-detail">
+                            <span class="detail-label">Собрано мусора</span>
+                            <span id="victoryScore" class="detail-value">100</span>
+                        </div>
+                        
+                        <div class="victory-detail">
+                            <span class="detail-label">Осталось здоровья</span>
+                            <span id="victoryHealth" class="detail-value">100%</span>
+                        </div>
+                        
+                        <div class="victory-detail">
+                            <span class="detail-label">Потрачено времени</span>
+                            <span id="victoryTime" class="detail-value">0с</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="popup-buttons">
+                    <button id="nextLevel" class="popup-btn primary">
+                        <i class="fas fa-forward"></i> Следующий уровень
+                    </button>
+                    <button id="menuAfterVictory" class="popup-btn secondary">
+                        <i class="fas fa-home"></i> В меню
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Экран обучения -->
+        <div id="tutorialScreen" class="screen hidden">
+            <div class="tutorial-container">
+                <div class="tutorial-header">
+                    <h2><i class="fas fa-graduation-cap"></i> ОБУЧЕНИЕ</h2>
+                </div>
+                
+                <div class="tutorial-slider">
+                    <div class="tutorial-slide active" id="slide1">
+                        <div class="slide-content">
+                            <div class="slide-icon">
+                                <i class="fas fa-user-astronaut"></i>
+                            </div>
+                            <h3>Ваша миссия</h3>
+                            <p>Вы - робот-уборщик на космической станции. Собирайте мусор и избегайте вражеских дронов.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-slide" id="slide2">
+                        <div class="slide-content">
+                            <div class="slide-icon">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                            <h3>Управление</h3>
+                            <p>Используйте джойстик для движения. Кнопки действий находятся справа.</p>
+                            <div class="control-demo">
+                                <div class="control-item">
+                                    <div class="control-btn demo">
+                                        <i class="fas fa-arrows-alt"></i>
+                                    </div>
+                                    <span>Движение</span>
+                                </div>
+                                <div class="control-item">
+                                    <div class="control-btn demo boost">
+                                        <i class="fas fa-rocket"></i>
+                                    </div>
+                                    <span>Ускорение</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-slide" id="slide3">
+                        <div class="slide-content">
+                            <div class="slide-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <h3>Улучшения</h3>
+                            <p>Собирайте бонусы для усиления:</p>
+                            <ul class="powerup-list">
+                                <li><i class="fas fa-bolt" style="color: #ffaa00;"></i> <strong>Скорость</strong> - быстрее двигаетесь</li>
+                                <li><i class="fas fa-magnet" style="color: #00ccff;"></i> <strong>Магнит</strong> - притягивает мусор</li>
+                                <li><i class="fas fa-shield-alt" style="color: #ff00ff;"></i> <strong>Щит</strong> - защита от врагов</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-slide" id="slide4">
+                        <div class="slide-content">
+                            <div class="slide-icon">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <h3>Цель игры</h3>
+                            <p>Соберите 100 единиц мусора раньше, чем закончится время или здоровье.</p>
+                            <div class="goal-demo">
+                                <div class="goal-item">
+                                    <i class="fas fa-trash"></i>
+                                    <span>100 мусора</span>
+                                </div>
+                                <div class="goal-item">
+                                    <i class="fas fa-heart"></i>
+                                    <span>Сохраните здоровье</span>
+                                </div>
+                                <div class="goal-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Время ограничено</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tutorial-nav">
+                    <div class="slide-dots">
+                        <span class="dot active" data-slide="1"></span>
+                        <span class="dot" data-slide="2"></span>
+                        <span class="dot" data-slide="3"></span>
+                        <span class="dot" data-slide="4"></span>
+                    </div>
+                    
+                    <div class="tutorial-buttons">
+                        <button id="prevSlide" class="nav-btn">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                        <button id="nextSlide" class="nav-btn">
+                            Вперед <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button id="skipTutorial" class="nav-btn skip">
+                            Пропустить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Экран рекордов -->
+        <div id="highScoresScreen" class="screen hidden">
+            <div class="scores-container">
+                <div class="scores-header">
+                    <h2><i class="fas fa-trophy"></i> ЛУЧШИЕ РЕЗУЛЬТАТЫ</h2>
+                </div>
+                
+                <div class="scores-list">
+                    <div class="score-item personal-best">
+                        <div class="score-rank">★</div>
+                        <div class="score-info">
+                            <span class="score-player">Ваш лучший</span>
+                            <span class="score-date">Сегодня</span>
+                        </div>
+                        <div class="score-value" id="personalBestScore">0</div>
+                    </div>
+                    
+                    <div id="highScoresList">
+                        <!-- Список рекордов будет сгенерирован JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="scores-footer">
+                    <button id="backFromScores" class="mobile-btn primary">
+                        <i class="fas fa-arrow-left"></i> Назад
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Уведомления -->
+        <div id="notification" class="notification hidden">
+            <div class="notification-content">
+                <i class="notification-icon"></i>
+                <span class="notification-text"></span>
+            </div>
+        </div>
+        
+        <!-- Оверлей ориентации -->
+        <div id="orientationOverlay" class="orientation-overlay hidden">
+            <div class="orientation-content">
+                <i class="fas fa-mobile-alt"></i>
+                <h3>Поверните устройство</h3>
+                <p>Для лучшей игры поверните телефон в горизонтальное положение</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Аудио элементы -->
+    <audio id="backgroundMusic" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-driving-ambition-32.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="collectSound">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="hitSound">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-retro-game-emergency-alarm-1000.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="powerupSound">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="clickSound">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script src="game.js"></script>
+</body>
+</html>
